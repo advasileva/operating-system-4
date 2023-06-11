@@ -9,10 +9,6 @@ chmod:
 compile:
 	./scripts/compile.sh
 
-run:
-	make chmod
-	./scripts/run.sh ${tests}
-
 server:
 	./${dir}/server 50124 127.0.0.1 50225 50226 127.0.0.1 50321
 

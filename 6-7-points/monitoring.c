@@ -8,20 +8,6 @@
 #define RCVBUFSIZE 1000  
 #define MAXPENDING 5
 
-void HandleTCPClient(int clntSocket, char *argv[])
-{ 
-    char echoBuffer[RCVBUFSIZE];      
-    int recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0);
- 
-    while (recvMsgSize > 0)  
-    {
-        printf("[MONITORING %d] %s", getpid(), echoBuffer);
-        recvMsgSize = recv(clntSocket, echoBuffer, recvMsgSize, 0);
-    }
-
-    close(clntSocket);
-}
-
 int main(int argc, char *argv[])
 {
     int servSock;                   
@@ -35,7 +21,7 @@ int main(int argc, char *argv[])
 
     echoServPort = atoi(argv[1]);
 
-    servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family = AF_INET;               
@@ -43,14 +29,20 @@ int main(int argc, char *argv[])
     echoServAddr.sin_port = htons(echoServPort);    
 
     bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-    listen(servSock, MAXPENDING);
+    // listen(servSock, MAXPENDING);
 
     for (;;)
     {
         clntLen = sizeof(echoClntAddr);
 
-        clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen);
-
-        HandleTCPClient(clntSock, argv);
+        // clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen);
+        char echoBuffer[RCVBUFSIZE];      
+        int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+    
+        while (recvMsgSize > 0)  
+        {
+            printf("[MONITORING %d] %s", getpid(), echoBuffer);
+            recvMsgSize = recvfrom(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+        }
     }
 }

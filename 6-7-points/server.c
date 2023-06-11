@@ -8,9 +8,9 @@
 #define RCVBUFSIZE 8 
 #define MAXPENDING 5
 #define MON_SIZE 100
+int msock;  
 
-struct sockaddr* monitoring(char *argv[]) {
-    int sock;                        
+struct sockaddr_in monitoring(char *argv[]) {     
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;     
     char *servIP;  
@@ -18,16 +18,16 @@ struct sockaddr* monitoring(char *argv[]) {
     servIP = argv[5];        
     echoServPort = atoi(argv[6]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+    msock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
-    return &echoServAddr;
+    return echoServAddr;
 }
 
 void send_to_seller(char *msg, char *argv[], struct sockaddr_in echoClntAddr)
@@ -43,7 +43,7 @@ void send_to_seller(char *msg, char *argv[], struct sockaddr_in echoClntAddr)
     echoServPort1 = atoi(argv[3]);
     echoServPort2 = atoi(argv[4]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
@@ -94,13 +94,13 @@ int main(int argc, char *argv[])
  
         while (recvMsgSize > 0)  
         { 
-            int m_sock = monitoring(argv), msg_len;
+            struct sockaddr_in monAddr = monitoring(argv);
+            int msg_len;
             char *msg;
             sprintf(msg, "[SERVER %d] Got product with id=%s\n", getpid(), echoBuffer);
-            printf("%d", m_sock); 
+            printf("%d", msock); 
             msg_len = strlen(msg); 
-            sendto(m_sock, msg, MON_SIZE, 0); // TODO 
-            close(m_sock);
+            sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
 
             sendto(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, clntLen);
             recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);

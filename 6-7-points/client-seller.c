@@ -8,37 +8,37 @@
 #define RCVBUFSIZE 8
 #define MAXPENDING 5   
 #define MON_SIZE 1000
+int msock;  
 
-int monitoring(char *argv[]) {
-    int sock;                        
+struct sockaddr_in monitoring(char *argv[]) {     
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;     
     char *servIP;  
     
-    servIP = argv[2];        
-    echoServPort = atoi(argv[3]);
+    servIP = argv[5];        
+    echoServPort = atoi(argv[6]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+    msock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
-    return sock;
+    return echoServAddr;
 }
 
 // Логика работы продавца
 void seller(int id, char *argv[]) {
-    int m_sock = monitoring(argv), msg_len;
+    // int m_sock = monitoring(argv), msg_len;
     char msg[MON_SIZE];
     sprintf(msg, "[SELLER %d] Selling stock with id=%d\n", getpid(), id);
     printf("%s", msg);  
-    msg_len = strlen(msg); 
-    send(m_sock, msg, msg_len, 0);
-    close(m_sock);
+    // msg_len = strlen(msg); 
+    // send(m_sock, msg, msg_len, 0);
+    // close(m_sock);
 
     sleep(1);
 }
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     echoServPort = atoi(argv[1]);
 
-    servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family = AF_INET;               

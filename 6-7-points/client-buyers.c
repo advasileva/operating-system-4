@@ -9,6 +9,7 @@
 
 #define RCVBUFSIZE 8
 #define MON_SIZE 1000
+int msock;  
 
 // DTO покупателя
 typedef struct person {
@@ -16,8 +17,7 @@ typedef struct person {
     int size;
  } person;
 
-int monitoring(char *argv[]) {
-    int sock;                        
+struct sockaddr_in monitoring(char *argv[]) {     
     struct sockaddr_in echoServAddr;
     unsigned short echoServPort;     
     char *servIP;  
@@ -25,20 +25,20 @@ int monitoring(char *argv[]) {
     servIP = argv[4];        
     echoServPort = atoi(argv[5]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    msock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
-    return sock;
+    return echoServAddr;
 }
 
 // Логика работы покупателя
-void buyer(int *list, int size, int sock, char *argv[], struct sockaddr_in echoClntAddr) {
+void buyer(int *list, int size, int sock, char *argv[], struct sockaddr_in* echoClntAddr) {
     int str_len;
     char str[RCVBUFSIZE];
     unsigned int clntLen = sizeof(echoClntAddr);
@@ -50,21 +50,21 @@ void buyer(int *list, int size, int sock, char *argv[], struct sockaddr_in echoC
         } else {
             sprintf(msg, "[BUYER %d] Buying stock %d from 2\n", getpid(), list[i]);
         }
-        int m_sock = monitoring(argv), msg_len;
-        printf("%s", msg);  
+        struct sockaddr_in monAddr = monitoring(argv);
+        int msg_len;
+        printf("%s", msg); 
         msg_len = strlen(msg); 
-        send(m_sock, msg, msg_len, 0);
-        close(m_sock);
+        sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
 
-        sprintf(str, "%d", list[i]);
-        sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, clntLen);
-        sleep(3);
+        // sprintf(str, "%d", list[i]);
+        // sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, clntLen);
+        // sleep(3);
     }
     exit(0);
 }
 
 // Рекурсивный форк процессов-покупателей
-int fork_buyers(person buyers[], int n, int sock, char *argv[], struct sockaddr_in echoClntAddr) { 
+int fork_buyers(person buyers[], int n, int sock, char *argv[], struct sockaddr_in* echoClntAddr) {
     if (n == 0) {
         return 0;
     }
@@ -74,6 +74,17 @@ int fork_buyers(person buyers[], int n, int sock, char *argv[], struct sockaddr_
     }
     return fork_buyers(buyers, n - 1, sock, argv, echoClntAddr);
 }
+
+// int fork_buyers2(person buyers[], int n, int sock) { 
+//     if (n == 0) {
+//         return 0;
+//     }
+//     if (fork() == 0) {
+//         buyer(buyers[n - 1].list, buyers[n - 1].size, sock, 0);
+//         return 0;
+//     }
+//     return fork_buyers2(buyers, n - 1, sock);
+// }
 
 int main(int argc, char *argv[]) {
     int sock;                        
@@ -88,7 +99,7 @@ int main(int argc, char *argv[]) {
     servIP = argv[1];        
     echoServPort = atoi(argv[2]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
@@ -118,7 +129,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    fork_buyers(buyers, n, sock, argv, echoServAddr);
+    fork_buyers(buyers, n, sock, argv, &echoServAddr);
 
     close(sock);
     exit(0);
