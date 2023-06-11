@@ -23,9 +23,7 @@ struct sockaddr_in monitoring(char *argv[]) {
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
-    echoServAddr.sin_port        = htons(echoServPort); 
-
-    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    echoServAddr.sin_port        = htons(echoServPort);
 
     return echoServAddr;
 }
@@ -55,13 +53,13 @@ void send_to_seller(char *msg, char *argv[], struct sockaddr_in echoClntAddr)
         echoServAddr.sin_port        = htons(echoServPort2); 
     }
  
-    sendto(sock, msg, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, sizeof(echoClntAddr));
+    sendto(sock, msg, RCVBUFSIZE, 0, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
     close(sock);
 }
 
 int main(int argc, char *argv[])
-{
+{   
     int servSock;                   
     int clntSock;                   
     struct sockaddr_in echoServAddr; 
@@ -77,7 +75,7 @@ int main(int argc, char *argv[])
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family = AF_INET;               
     echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    echoServAddr.sin_port = htons(echoServPort);    
+    echoServAddr.sin_port = htons(echoServPort); 
 
     bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
@@ -85,7 +83,7 @@ int main(int argc, char *argv[])
     { 
         unsigned int clntLen = sizeof(echoClntAddr);
 
-        char echoBuffer[RCVBUFSIZE];      
+        char echoBuffer[RCVBUFSIZE];
         recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
 
         char msg[MON_SIZE]; 
@@ -104,6 +102,7 @@ int main(int argc, char *argv[])
 
             sendto(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, clntLen);
             recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+            printf("got");
             send_to_seller(echoBuffer, argv, echoClntAddr);
         }
     }

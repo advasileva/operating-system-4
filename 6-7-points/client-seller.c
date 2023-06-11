@@ -15,8 +15,8 @@ struct sockaddr_in monitoring(char *argv[]) {
     unsigned short echoServPort;     
     char *servIP;  
     
-    servIP = argv[5];        
-    echoServPort = atoi(argv[6]);
+    servIP = argv[2];        
+    echoServPort = atoi(argv[3]);
 
     msock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -25,52 +25,56 @@ struct sockaddr_in monitoring(char *argv[]) {
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-
     return echoServAddr;
 }
 
 // Логика работы продавца
 void seller(int id, char *argv[]) {
-    // int m_sock = monitoring(argv), msg_len;
     char msg[MON_SIZE];
     sprintf(msg, "[SELLER %d] Selling stock with id=%d\n", getpid(), id);
-    printf("%s", msg);  
-    // msg_len = strlen(msg); 
-    // send(m_sock, msg, msg_len, 0);
-    // close(m_sock);
+    struct sockaddr_in monAddr = monitoring(argv);
+    int msg_len;
+    printf("%s", msg); 
+    msg_len = strlen(msg); 
+    sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
 
     sleep(1);
 }
 
 int main(int argc, char *argv[])
 {
-    int servSock;                   
-    int clntSock;                   
-    struct sockaddr_in echoServAddr; 
-    struct sockaddr_in echoClntAddr;
-    unsigned short echoServPort;   
-    unsigned int clntLen;   
 
-    echoServPort = atoi(argv[1]);
+    struct sockaddr_in monAddr = monitoring(argv);
+    char* msg = "test";
+    printf("%d", sizeof(monAddr));
+    sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
+    // int servSock;                   
+    // int clntSock;                   
+    // struct sockaddr_in echoServAddr; 
+    // struct sockaddr_in echoClntAddr;
+    // unsigned short echoServPort;   
+    // unsigned int clntLen;   
 
-    servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    // echoServPort = atoi(argv[1]);
 
-    memset(&echoServAddr, 0, sizeof(echoServAddr));  
-    echoServAddr.sin_family = AF_INET;               
-    echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    echoServAddr.sin_port = htons(echoServPort);    
+    // servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    // memset(&echoServAddr, 0, sizeof(echoServAddr));  
+    // echoServAddr.sin_family = AF_INET;               
+    // echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    // echoServAddr.sin_port = htons(echoServPort);    
 
-    for (;;)
-    {
-        char echoBuffer[RCVBUFSIZE];
-        unsigned int clntLen = sizeof(echoClntAddr);        
-        int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+    // bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
-        seller(echoBuffer[0] - '0', argv);
+    // for (;;)
+    // {
+    //     char echoBuffer[RCVBUFSIZE];
+    //     unsigned int clntLen = sizeof(echoClntAddr);        
+    //     int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
 
-        close(servSock);
-    }
+    //     seller(echoBuffer[0] - '0', argv);
+    //     printf("%d", echoBuffer[0] - '0');
+
+    //     close(servSock);
+    // }
 }

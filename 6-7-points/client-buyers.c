@@ -32,8 +32,6 @@ struct sockaddr_in monitoring(char *argv[]) {
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-
     return echoServAddr;
 }
 
@@ -56,9 +54,9 @@ void buyer(int *list, int size, int sock, char *argv[], struct sockaddr_in* echo
         msg_len = strlen(msg); 
         sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
 
-        // sprintf(str, "%d", list[i]);
-        // sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, clntLen);
-        // sleep(3);
+        sprintf(str, "%d", list[i]);
+        sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, clntLen);
+        sleep(3);
     }
     exit(0);
 }
@@ -74,17 +72,6 @@ int fork_buyers(person buyers[], int n, int sock, char *argv[], struct sockaddr_
     }
     return fork_buyers(buyers, n - 1, sock, argv, echoClntAddr);
 }
-
-// int fork_buyers2(person buyers[], int n, int sock) { 
-//     if (n == 0) {
-//         return 0;
-//     }
-//     if (fork() == 0) {
-//         buyer(buyers[n - 1].list, buyers[n - 1].size, sock, 0);
-//         return 0;
-//     }
-//     return fork_buyers2(buyers, n - 1, sock);
-// }
 
 int main(int argc, char *argv[]) {
     int sock;                        
@@ -106,7 +93,6 @@ int main(int argc, char *argv[]) {
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
     printf("Init buyers client connected to server\n");
 
      // Ввод информации о покупателях

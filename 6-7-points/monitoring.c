@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
     echoServAddr.sin_port = htons(echoServPort);    
 
     bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-    // listen(servSock, MAXPENDING);
 
     for (;;)
     {
