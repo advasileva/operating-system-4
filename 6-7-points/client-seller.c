@@ -5,7 +5,7 @@
 #include <string.h>   
 #include <unistd.h>    
 
-#define RCVBUFSIZE 8 
+#define RCVBUFSIZE 8
 #define MAXPENDING 5   
 #define MON_SIZE 1000
 
@@ -18,7 +18,7 @@ int monitoring(char *argv[]) {
     servIP = argv[2];        
     echoServPort = atoi(argv[3]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
@@ -43,16 +43,6 @@ void seller(int id, char *argv[]) {
     sleep(1);
 }
 
-void HandleTCPClient(int clntSocket, char *argv[])
-{
-    char echoBuffer[RCVBUFSIZE];        
-    int recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0);
-
-    seller(echoBuffer[0] - '0', argv);
-
-    close(clntSocket);
-}
-
 int main(int argc, char *argv[])
 {
     int servSock;                   
@@ -72,14 +62,15 @@ int main(int argc, char *argv[])
     echoServAddr.sin_port = htons(echoServPort);    
 
     bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-    listen(servSock, MAXPENDING);
 
     for (;;)
     {
-        clntLen = sizeof(echoClntAddr);
+        char echoBuffer[RCVBUFSIZE];
+        unsigned int clntLen = sizeof(echoClntAddr);        
+        int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
 
-        clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen);
+        seller(echoBuffer[0] - '0', argv);
 
-        HandleTCPClient(clntSock, argv);
+        close(servSock);
     }
 }

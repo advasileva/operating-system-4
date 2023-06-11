@@ -38,9 +38,10 @@ int monitoring(char *argv[]) {
 }
 
 // Логика работы покупателя
-void buyer(int *list, int size, int sock, char *argv[]) {
+void buyer(int *list, int size, int sock, char *argv[], struct sockaddr_in echoClntAddr) {
     int str_len;
     char str[RCVBUFSIZE];
+    unsigned int clntLen = sizeof(echoClntAddr);
 
     char msg[MON_SIZE];
     for (size_t i = 0; i < size; i++) { // Последовательно покупаем все товары из списка
@@ -56,22 +57,22 @@ void buyer(int *list, int size, int sock, char *argv[]) {
         close(m_sock);
 
         sprintf(str, "%d", list[i]);
-        send(sock, str, RCVBUFSIZE, 0);
+        sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, clntLen);
         sleep(3);
     }
     exit(0);
 }
 
 // Рекурсивный форк процессов-покупателей
-int fork_buyers(person buyers[], int n, int sock, char *argv[]) { 
+int fork_buyers(person buyers[], int n, int sock, char *argv[], struct sockaddr_in echoClntAddr) { 
     if (n == 0) {
         return 0;
     }
     if (fork() == 0) {
-        buyer(buyers[n - 1].list, buyers[n - 1].size, sock, argv);
+        buyer(buyers[n - 1].list, buyers[n - 1].size, sock, argv, echoClntAddr);
         return 0;
     }
-    return fork_buyers(buyers, n - 1, sock, argv);
+    return fork_buyers(buyers, n - 1, sock, argv, echoClntAddr);
 }
 
 int main(int argc, char *argv[]) {
@@ -87,14 +88,14 @@ int main(int argc, char *argv[]) {
     servIP = argv[1];        
     echoServPort = atoi(argv[2]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
 
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    // connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
     printf("Init buyers client connected to server\n");
 
      // Ввод информации о покупателях
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    fork_buyers(buyers, n, sock, argv);
+    fork_buyers(buyers, n, sock, argv, echoServAddr);
 
     close(sock);
     exit(0);
