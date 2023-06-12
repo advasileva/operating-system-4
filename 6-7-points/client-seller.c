@@ -43,38 +43,33 @@ void seller(int id, char *argv[]) {
 
 int main(int argc, char *argv[])
 {
+    int servSock;                   
+    int clntSock;                   
+    struct sockaddr_in echoServAddr; 
+    struct sockaddr_in echoClntAddr;
+    unsigned short echoServPort;   
+    unsigned int clntLen;   
 
-    struct sockaddr_in monAddr = monitoring(argv);
-    char* msg = "test";
-    printf("%d", sizeof(monAddr));
-    sendto(msock, msg, MON_SIZE, 0, (struct sockaddr *) &monAddr, sizeof(monAddr));
-    // int servSock;                   
-    // int clntSock;                   
-    // struct sockaddr_in echoServAddr; 
-    // struct sockaddr_in echoClntAddr;
-    // unsigned short echoServPort;   
-    // unsigned int clntLen;   
+    echoServPort = atoi(argv[1]);
 
-    // echoServPort = atoi(argv[1]);
+    servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    // servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    memset(&echoServAddr, 0, sizeof(echoServAddr));  
+    echoServAddr.sin_family = AF_INET;               
+    echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    echoServAddr.sin_port = htons(echoServPort);    
 
-    // memset(&echoServAddr, 0, sizeof(echoServAddr));  
-    // echoServAddr.sin_family = AF_INET;               
-    // echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    // echoServAddr.sin_port = htons(echoServPort);    
 
-    // bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+    for (;;)
+    {
+        bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
+        char echoBuffer[RCVBUFSIZE];
+        unsigned int clntLen = sizeof(echoClntAddr);        
+        int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
 
-    // for (;;)
-    // {
-    //     char echoBuffer[RCVBUFSIZE];
-    //     unsigned int clntLen = sizeof(echoClntAddr);        
-    //     int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+        seller(echoBuffer[0] - '0', argv);
+        printf("%d", echoBuffer[0] - '0');
 
-    //     seller(echoBuffer[0] - '0', argv);
-    //     printf("%d", echoBuffer[0] - '0');
-
-    //     close(servSock);
-    // }
+    }
+    close(servSock);
 }

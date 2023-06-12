@@ -102,7 +102,6 @@ int main(int argc, char *argv[])
 
             sendto(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, clntLen);
             recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
-            printf("got");
             send_to_seller(echoBuffer, argv, echoClntAddr);
         }
     }

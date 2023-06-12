@@ -28,13 +28,12 @@ int main(int argc, char *argv[])
     echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     echoServAddr.sin_port = htons(echoServPort);    
 
-    bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
     for (;;)
     {
+        bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
         clntLen = sizeof(echoClntAddr);
 
-        // clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen);
         char echoBuffer[RCVBUFSIZE];      
         int recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
     
@@ -43,5 +42,7 @@ int main(int argc, char *argv[])
             printf("[MONITORING %d] %s", getpid(), echoBuffer);
             recvMsgSize = recvfrom(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
         }
+
     }
+    close(servSock);
 }
