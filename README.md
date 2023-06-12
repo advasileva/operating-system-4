@@ -89,12 +89,12 @@
     ```bash
     $ make server
     ./4-5-points/server 50124 127.0.0.1 50225 50226
-    [SERVER 11146] Handling client 127.0.0.1
-    [SERVER 11146] Got product with id=4
-    [SERVER 11146] Got product with id=2
-    [SERVER 11146] Got product with id=1
-    [SERVER 11146] Got product with id=3
-    [SERVER 11146] Got product with id=5
+    [SERVER 40776] Handling client 127.0.0.1
+    [SERVER 40776] Got product with id=4
+    [SERVER 40776] Got product with id=2
+    [SERVER 40776] Got product with id=1
+    [SERVER 40776] Got product with id=3
+    [SERVER 40776] Got product with id=5
     ```
 
     Логи клиентов-покупателей:
@@ -102,28 +102,28 @@
     $ make buyers
     ./4-5-points/client-buyers 127.0.0.1 50124 tests/test2.in
     Init buyers client connected to server
-    [BUYER 11183] Buying stock 4 from 2
-    [BUYER 11184] Buying stock 2 from 2
-    [BUYER 11183] Buying stock 1 from 1
-    [BUYER 11184] Buying stock 3 from 1
-    [BUYER 11184] Buying stock 5 from 1
+    [BUYER 40811] Buying stock 4 from 2
+    [BUYER 40812] Buying stock 2 from 2
+    [BUYER 40811] Buying stock 1 from 1
+    [BUYER 40812] Buying stock 3 from 1
+    [BUYER 40812] Buying stock 5 from 1
     ```
 
     Логи первого (нечётного) продавца:
     ```bash
     $ make seller-1
     ./4-5-points/client-seller 50225
-    [SELLER 11163] Selling stock with id=1
-    [SELLER 11163] Selling stock with id=3
-    [SELLER 11163] Selling stock with id=5
+    [SELLER 40830] Selling stock with id=1
+    [SELLER 40830] Selling stock with id=3
+    [SELLER 40830] Selling stock with id=5
     ```
 
     Логи второго (чётного) продавца:
     ```bash
     $ make seller-2
     ./4-5-points/client-seller 50226
-    [SELLER 11174] Selling stock with id=4
-    [SELLER 11174] Selling stock with id=2
+    [SELLER 40894] Selling stock with id=4
+    [SELLER 40894] Selling stock with id=2
     ```
 
     Видим, что вывод программы соответствует логике работы
@@ -142,23 +142,23 @@
 
     Пример работы (фактически это агрегация логов):
     ```bash
-    [MONITORING 19239] Started
-    [MONITORING 19239] [SERVER 19203] Handling client 127.0.0.1
-    [MONITORING 19239] [BUYER 19326] Buying stock 4 from 2
-    [MONITORING 19239] [BUYER 19327] Buying stock 2 from 2
-    [MONITORING 19239] [SERVER 19313] Got product with id=4
-    [MONITORING 19239] [SERVER 19313] Got product with id=2
-    [MONITORING 19239] [SELLER 19226] Selling stock with id=4
-    [MONITORING 19239] [SELLER 19226] Selling stock with id=2
-    [MONITORING 19239] [BUYER 19326] Buying stock 1 from 1
-    [MONITORING 19239] [BUYER 19327] Buying stock 3 from 1
-    [MONITORING 19239] [SERVER 19313] Got product with id=1
-    [MONITORING 19239] [SELLER 19215] Selling stock with id=1
-    [MONITORING 19239] [SERVER 19313] Got product with id=3
-    [MONITORING 19239] [SELLER 19215] Selling stock with id=3
-    [MONITORING 19239] [BUYER 19327] Buying stock 5 from 1
-    [MONITORING 19239] [SERVER 19313] Got product with id=5
-    [MONITORING 19239] [SELLER 19215] Selling stock with id=5
+    [MONITORING 41232] Started
+    [MONITORING 41232] [SERVER 41230] Handling client 127.0.0.1
+    [MONITORING 41232] [BUYER 41245] Buying stock 4 from 2
+    [MONITORING 41232] [BUYER 41246] Buying stock 2 from 2
+    [MONITORING 41232] [SERVER 41231] Got product with id=4
+    [MONITORING 41232] [SERVER 41231] Got product with id=2
+    [MONITORING 41232] [SELLER 41238] Selling stock with id=4
+    [MONITORING 41232] [SELLER 41238] Selling stock with id=2
+    [MONITORING 41232] [BUYER 41245] Buying stock 1 from 1
+    [MONITORING 41232] [BUYER 41246] Buying stock 3 from 1
+    [MONITORING 41232] [SERVER 41231] Got product with id=1
+    [MONITORING 41232] [SELLER 41239] Selling stock with id=1
+    [MONITORING 41232] [SERVER 41231] Got product with id=3
+    [MONITORING 41232] [SELLER 41239] Selling stock with id=3
+    [MONITORING 41232] [BUYER 41246] Buying stock 5 from 1
+    [MONITORING 41232] [SERVER 41231] Got product with id=5
+    [MONITORING 41232] [SELLER 41239] Selling stock with id=5
     ```
 
 
