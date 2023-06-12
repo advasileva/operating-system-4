@@ -7,4 +7,5 @@ gcc ./6-7-points/client-buyers.c -lpthread -o ./6-7-points/client-buyers
 gcc ./6-7-points/client-seller.c -lpthread -o ./6-7-points/client-seller
 gcc ./6-7-points/server.c -lpthread -o ./6-7-points/server
 gcc ./6-7-points/monitoring.c -lpthread -o ./6-7-points/monitoring
+gcc ./6-7-points/monitoring-client.c -lpthread -o ./6-7-points/monitoring-client
 echo "Programs compiled"

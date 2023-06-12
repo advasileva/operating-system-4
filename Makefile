@@ -22,4 +22,7 @@ seller-2:
 	./${dir}/client-seller 50226 127.0.0.1 50321
 
 monitoring:
-	./${dir}/monitoring 50321
+	./${dir}/monitoring 50321 127.0.0.1 50320
+
+monitoring-client:
+	./${dir}/monitoring-client 50320
