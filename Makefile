@@ -1,6 +1,6 @@
 tests = 3
-# dir=4-5-points
-dir=6-7-points
+dir=4-5-points
+# dir=6-7-points
 
 chmod:
 	chmod -R +xr .

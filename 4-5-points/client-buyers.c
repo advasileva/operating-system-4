@@ -16,7 +16,7 @@ typedef struct person {
  } person;
 
 // Логика работы покупателя
-void buyer(int *list, int size, int sock) {
+void buyer(int *list, int size, int sock, struct sockaddr_in* echoClntAddr) {
     int str_len;
     char str[RCVBUFSIZE];
 
@@ -27,22 +27,21 @@ void buyer(int *list, int size, int sock) {
             printf("[BUYER %d] Buying stock %d from 2\n", getpid(), list[i]);
         }
         sprintf(str, "%d", list[i]);
-        send(sock, str, RCVBUFSIZE, 0);
-        
+        sendto(sock, str, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, sizeof(echoClntAddr));
         sleep(3);
     }
 }
 
 // Рекурсивный форк процессов-покупателей
-int fork_buyers(person buyers[], int n, int sock) { 
+int fork_buyers(person buyers[], int n, int sock, struct sockaddr_in* echoClntAddr) { 
     if (n == 0) {
         return 0;
     }
     if (fork() == 0) {
-        buyer(buyers[n - 1].list, buyers[n - 1].size, sock);
+        buyer(buyers[n - 1].list, buyers[n - 1].size, sock, echoClntAddr);
         return 0;
     }
-    return fork_buyers(buyers, n - 1, sock);
+    return fork_buyers(buyers, n - 1, sock, echoClntAddr);
 }
 
 int main(int argc, char *argv[])
@@ -59,14 +58,12 @@ int main(int argc, char *argv[])
     servIP = argv[1];        
     echoServPort = atoi(argv[2]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
     echoServAddr.sin_addr.s_addr = inet_addr(servIP);  
     echoServAddr.sin_port        = htons(echoServPort); 
-
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
     printf("Init buyers client connected to server\n");
 
      // Ввод информации о покупателях
@@ -89,7 +86,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    fork_buyers(buyers, n, sock);
+    fork_buyers(buyers, n, sock, &echoServAddr);
 
     close(sock);
     exit(0);

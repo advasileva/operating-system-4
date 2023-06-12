@@ -21,7 +21,7 @@ void send_to_seller(char *msg, char *argv[])
     echoServPort1 = atoi(argv[3]);
     echoServPort2 = atoi(argv[4]);
 
-    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family      = AF_INET;    
@@ -32,29 +32,10 @@ void send_to_seller(char *msg, char *argv[])
     } else {
         echoServAddr.sin_port        = htons(echoServPort2); 
     }
-    
 
-    connect(sock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
- 
-    send(sock, msg, RCVBUFSIZE, 0);
+    sendto(sock, msg, RCVBUFSIZE, 0, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
     close(sock);
-}
-
-void HandleTCPClient(int clntSocket, char *argv[])
-{ 
-    char echoBuffer[RCVBUFSIZE];      
-    int recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0);
- 
-    while (recvMsgSize > 0)  
-    { 
-        printf("[SERVER %d] Got product with id=%s\n", getpid(), echoBuffer);  
-        send(clntSocket, echoBuffer, recvMsgSize, 0);
-        recvMsgSize = recv(clntSocket, echoBuffer, RCVBUFSIZE, 0);
-        send_to_seller(echoBuffer, argv);
-    }
-
-    close(clntSocket);
 }
 
 int main(int argc, char *argv[])
@@ -65,27 +46,35 @@ int main(int argc, char *argv[])
     struct sockaddr_in echoClntAddr;
     unsigned short echoServPort;   
     unsigned int clntLen;   
+    int recvMsgSize;
 
     echoServPort = atoi(argv[1]);
 
-    servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    servSock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&echoServAddr, 0, sizeof(echoServAddr));  
     echoServAddr.sin_family = AF_INET;               
     echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    echoServAddr.sin_port = htons(echoServPort);    
+    echoServAddr.sin_port = htons(echoServPort);
 
-    bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
-    listen(servSock, MAXPENDING);
+   bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr));
 
     for (;;)
-    {
-        clntLen = sizeof(echoClntAddr);
+    { 
+    unsigned int clntLen = sizeof(echoClntAddr);
 
-        clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen);
+    char echoBuffer[RCVBUFSIZE];
+    recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);  
 
-        printf("[SERVER %d] Handling client %s\n", getpid(), inet_ntoa(echoClntAddr.sin_addr));
+        while (recvMsgSize > 0)  
+        { 
+            int msg_len;
+            char *msg;
+            sprintf(msg, "[SERVER %d] Got product with id=%s\n", getpid(), echoBuffer);
 
-        HandleTCPClient(clntSock, argv);
+            sendto(servSock, echoBuffer, recvMsgSize, 0, (struct sockaddr *) &echoClntAddr, clntLen);
+            recvMsgSize = recvfrom(servSock, echoBuffer, RCVBUFSIZE, 0, (struct sockaddr *) &echoClntAddr, &clntLen);
+            send_to_seller(echoBuffer, argv);
+        }
     }
 }
